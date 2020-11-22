@@ -2,100 +2,50 @@
 //
 
 // target climbrate
-set target_climbrate to 0.
+global target_climbrate to 0.
 
 // target groundspeed, horizontal velocity forward
 //set target_pitchrate to 0.
-set target_upspeed to 0.
-set target_starspeed to 0.
-set roll to 0.
-
-// inputs / controls
-on AG1 {
-  set target_climbrate to target_climbrate - 1.
-  print "Climbrate set: " + target_climbrate.
-  preserve.
-}
-
-on AG4 {
-  set target_climbrate to target_climbrate + 1.
-  print "Climbrate set: " + target_climbrate.
-  preserve.
-}
-
-on AG5 {
-  set target_upspeed to target_upspeed + 1.
-  print "Upspeed set: " + target_upspeed.
-  preserve.
-}
-
-on AG6 {
-  set target_upspeed to target_upspeed - 1.
-  print "Upspeed set: " + target_upspeed.
-  preserve.
-}
-
-on AG2 {
-  set target_starspeed to target_starspeed + 1.
-  print "Starspeed set: " + target_starspeed.
-  preserve.
-}
-
-on AG3 {
-  set target_starspeed to target_starspeed - 1.
-  print "Starspeed set: " + target_starspeed.
-  preserve.
-}
-
-on AG7 {
-  set roll to roll + 15.
-  print "Roll set: " + roll.
-  preserve.
-}
-
-on AG9 {
-  set roll to roll - 15.
-  print "Roll set: " + roll.
-  preserve.
-}
-
+global target_upspeed to 0.
+global target_starspeed to 0.
+global roll to 0.
 
 // pid for climbrate/throttle
-set kp to 0.1.
-set ki to 0.01.
-set kd to 0.01.
+local kp to 0.1.
+local ki to 0.01.
+local kd to 0.01.
 
-set pid to PIDLOOP(kp, ki, kd).
-set pid:SETPOINT to 0.
+local pid to PIDLOOP(kp, ki, kd).
+set pid:setPOINT to 0.
 
-//set t to 0.7.
-set output_throttle to 0.7.
+//local t to 0.7.
+local output_throttle to 0.
 lock throttle to output_throttle.
 
 // pid for up velocity/pitch (horizontal)
-set lp to 1.0.
-set li to 0.0.
-set ld to 0.0.
+local lp to 1.0.
+local li to 0.0.
+local ld to 0.0.
 
-set ppid to PIDLOOP(lp, li, ld).
-set ppid:SETPOINT to 0.
-set output_pitch to 0.
+local ppid to PIDLOOP(lp, li, ld).
+set ppid:setPOINT to 0.
+local output_pitch to 0.
 //lock steering to up + R(output_pitch, 0, 0).
 
 // pid for up velocity/yaw (horizontal)
-set yp to 1.0.
-set yi to 0.0.
-set yd to 0.0.
+local yp to 1.0.
+local yi to 0.0.
+local yd to 0.0.
 
-set ypid to PIDLOOP(yp, yi, yd).
-set ypid:SETPOINT to 0.
-set output_yaw to 0.
+local ypid to PIDLOOP(yp, yi, yd).
+set ypid:setPOINT to 0.
+local output_yaw to 0.
 
-lock steering to up + R(output_pitch, output_yaw, roll).
+//lock steering to up + R(output_pitch, output_yaw, roll).
 
 //set ap_running to true.
 //on TIME:SECONDS {
-until false {
+function run_hover {
   // climbrate/throttle pid loop
   set current_climbrate to SHIP:VERTICALSPEED.
   set d_climbrate to current_climbrate - target_climbrate.
@@ -135,5 +85,5 @@ until false {
   //lock steering to up + R(pitch_angle, 0, 0).
 
   //if ap_running preserve.
-  wait 0.01.
+  //wait 0.01.
 }
