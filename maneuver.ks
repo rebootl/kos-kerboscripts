@@ -28,7 +28,7 @@ set ids["stop_node"]:ONCLICK to stop_next_node@.
 set ids["auto_burn"]:TEXT to "OFF".
 
 // loop control
-set loop_node to false.
+set loop_run to false.
 
 // directions
 // prograde (built-in)
@@ -77,6 +77,12 @@ function steering_unlock {
   set ids["current_steering"]:text to "UNLOCKED".
 }
 
+function reset {
+  unlock throttle.
+  unlock steering.
+  set ids["current_steering"]:text to "UNLOCKED".
+}
+
 function run_next_node {
   if not hasnode {
     print "No maneuver node found, returning...".
@@ -86,6 +92,8 @@ function run_next_node {
     print "Maneuver already running, stop first!".
     return.
   }
+  set loop_run to true.
+
   local n is nextnode.
   local dv is n:deltav:mag.
   print "dv: " + dv.
@@ -94,16 +102,18 @@ function run_next_node {
   local burn_time_p1 is om:get_burn_time(dv / 2, engine).
   print "burn time p1: " + burn_time_p1.
 
-  set loop_run to true.
-  //until not loop_run {
+  lock throttle to 0.
+  lock steering to n:deltav.
+  set ids["current_steering"]:text to "AUTO".
+
+  local t_start is n:eta - burn_time_p1.
+  if n:eta <= 0 or t_start <= 0 {
+    print "node passed, stopping loop".
+    set loop_run to false.
+    reset().
+  }
   on time:seconds {
-    local eta is n:eta.
-    local t_start is eta - burn_time_p1.
-    if eta <= 0 or t_start <= 0 {
-      set loop_run to false.
-      print "node passed, stopping loop".
-    }
-    //print "time to burn: " + t_start.
+    set t_start to n:eta - burn_time_p1.
     if loop_run {
       set ids["auto_burn"]:TEXT to "ETA burn:" + round(t_start, 2):tostring.
     } else {
@@ -111,21 +121,26 @@ function run_next_node {
     }
     if t_start <= 0 and loop_run {
       print "burn!".
+      set ids["auto_burn"]:TEXT to "Burning!".
       // on time:seconds will always run, so stop preserving here!
       set loop_run to false.
       lock throttle to 1.
       wait burn_time.
       lock throttle to 0.
+      reset().
+      set ids["auto_burn"]:TEXT to "Done!".
     }
-    //wait 0.1.
     if loop_run preserve.
   }
-  //print "maneuver completed/aborted".
 }
 
 function stop_next_node {
-  set loop_run to false.
-  //set ids["auto_burn"]:TEXT to "OFF".
+  if loop_run {
+    set loop_run to false.
+    reset().
+  } else {
+    print "not running, returning".
+  }
 }
 
 // keep running

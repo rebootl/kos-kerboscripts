@@ -9,6 +9,7 @@ parameter export is {
   function get_elliptical_period {
     parameter r_A.
     parameter r_B.
+    parameter mu.
 
     // test orbit 80km
     //set r_1 to 680000.
@@ -17,7 +18,7 @@ parameter export is {
 
     // calculate transfer period
     // P = 2PI * sqrt(a^3/MU)
-    return 2 * PI * SQRT((a*a*a) / BODY:MU).
+    return 2 * PI * SQRT((a*a*a) / mu).
   }
 
   function get_phase_angle {
@@ -29,12 +30,13 @@ parameter export is {
   function get_transfer_dv {
     parameter r_A.
     parameter r_B.
+    parameter mu.
 
     // semimajor axis of transfer ellipse
     local a_t is (r_A + r_B) / 2.
 
     local v_0 is SHIP:ORBIT:VELOCITY:ORBIT:MAG.
-    local v_t is SQRT(BODY:MU * ((2 / r_A) - (1 / a_t))).
+    local v_t is SQRT(mu * ((2 / r_A) - (1 / a_t))).
     return v_t - v_0.
   }
 
